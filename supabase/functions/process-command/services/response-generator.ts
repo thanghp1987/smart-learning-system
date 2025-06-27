@@ -1,41 +1,31 @@
-
-export async function generateResponse(analysis: any, result: any, apiKey: string) {
+export async function generateResponse(parsedAnalysis: any, executionResult: any, apiKey: string) {
   try {
-    // Use OpenAI to generate a friendly response
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: `Bạn là một trợ lý ảo hỗ trợ quản lý trường học.
-            Hãy tạo một phản hồi ngắn gọn, thân thiện về kết quả của hành động được yêu cầu.
-            Phản hồi bằng tiếng Việt, ngắn gọn (dưới 100 từ).`
-          },
-          { 
-            role: 'user', 
-            content: `Lệnh được phân tích: ${JSON.stringify(analysis)}
-            Kết quả thực hiện: ${JSON.stringify(result)}
-            Hãy tạo phản hồi phù hợp.`
-          }
-        ],
-        temperature: 0.7,
-      }),
-    });
-
-    const responseData = await response.json();
-    const responseText = responseData.choices[0]?.message?.content || '';
+    // The primary purpose is to return the message from the command execution.
+    // Additional logic for more sophisticated natural language generation could be added here.
     
-    return responseText;
+    if (executionResult && executionResult.message) {
+      return executionResult.message;
+    }
+    
+    // Fallback response if no message is available
+    if (parsedAnalysis && parsedAnalysis.intent) {
+      return `Command processed successfully. Intent: ${parsedAnalysis.intent}`;
+    }
+    
+    return "Command executed successfully.";
   } catch (error) {
     console.error('Error generating response:', error);
-    return result.success 
-      ? `Đã thực hiện thành công: ${result.message}`
-      : `Không thể thực hiện: ${result.message}`;
+    return "An error occurred while processing the command.";
   }
+}
+
+export function formatResponse(message: string, data?: any): string {
+  if (data) {
+    return `${message}\n\nData: ${JSON.stringify(data, null, 2)}`;
+  }
+  return message;
+}
+
+export function createErrorResponse(error: string): string {
+  return `Error: ${error}`;
 }
